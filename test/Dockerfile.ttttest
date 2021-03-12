@@ -1,0 +1,17 @@
+FROM amazonlinux:2 AS build
+WORKDIR /home/app
+COPY . /home/app/
+
+RUN yum install -y python3.7 python3-devel.x86_64 gcc* gzip make autoconf automake libtool
+RUN python3.7 -m pip install cmake && \
+python3.7 -m pip install -r requirements.txt --target /home/app && \
+python3.7 -m pip install awslambdaric --target /home/app
+
+FROM amazonlinux:2
+WORKDIR /app
+COPY --from=build /home/app /app
+
+RUN yum install -y python3*
+
+ENTRYPOINT [ "/bin/python3.7", “-m”, “awslambdaric” ]
+CMD [ "app.handler" ]
